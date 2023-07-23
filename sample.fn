@@ -1,0 +1,68 @@
+# Here's fizzbuzz. The standard library methods/functions are still speculative
+# and the final version will likely be somewhat different.
+
+# define a helper function containing our main logic
+let fn fizzbuzz-helper {n [int]} [string]
+  branch : (= (mod n 15) 0)  'FizzBuzz'
+         : (= (mod n 5) 0)   'Buzz'
+         : (= (mod n 3) 0)   'Fizz'
+         : else              (format '%i' n)
+
+# using def rather than let causes the function to be exported
+def fn fizzbuzz {} [void]
+  for i in (range 1 101)
+    println (fizzbuzz-helper i)
+
+# Here's an example expression along with every equivalent way to break it
+
+# no line breaks
++ 10 20 (sqrt 3)
+
+# 1st line break after operator
++
+  . 10 20 (sqrt 3)
+
++
+  10
+  . 20 (sqrt 3)
+
++
+  10
+  20
+  sqrt 3
+
++
+  10
+  20
+  sqrt
+    3
+
++
+  . 10 20
+  sqrt 3
+
++
+  . 10 20
+  sqrt
+    3
+
+# 1st line break after arg1
++ 10
+  . 20 (sqrt 3)
+
++ 10
+  20
+  sqrt 3
+
++ 10
+  20
+  sqrt
+    3
+
+# 1st line break after arg2
++ 10 20
+  sqrt 3
+
++ 10 20
+  sqrt
+    3
