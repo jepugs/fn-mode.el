@@ -181,74 +181,76 @@ lines. It will do nothing if `fn-mode-indent-new-lines' is nil.
 
 ;;; Syntax table and font-lock-defaults
 
-;; Printable characters which (at the time of writing) cannot legally appear
-;; anywhere in Fn source code.
-(setq fn-mode--reserved-characters
-  '(?` ?! ?@ ?$ ?^ ?& ?\\ ?\; ?\" ?,))
+(eval-and-compile
+  ;; Printable characters which (at the time of writing) cannot legally appear
+  ;; anywhere in Fn source code.
+  (setq fn-mode--reserved-characters
+        '(?` ?! ?@ ?$ ?^ ?& ?\\ ?\; ?\" ?,))
 
-(setq fn-mode--syntax-table
-  (let ((s (make-syntax-table)))
-    ;; this takes care of non-printable characters
-    (cl-loop for ch from 0 to 31
-      do (modify-syntax-entry ch "@" s))
-    ;; set all letters and numbers to word constituents
-    (cl-loop for ch from 48 to 57
-      do (modify-syntax-entry ch "w" s))
-    (cl-loop for ch from 65 to 90
-      do (modify-syntax-entry ch "w" s))
-    (cl-loop for ch from 97 to 122
-      do (modify-syntax-entry ch "w" s))
-    ;; whitespace and comments
-    (modify-syntax-entry ?\n ">" s)
-    (modify-syntax-entry ?\s " " s)
-    (modify-syntax-entry ?\# "<" s)
-    ;; reserved characters
-    (dolist (ch fn-mode--reserved-characters)
-      (modify-syntax-entry ch "." s))
-    ;; additional symbol constituents
-    (dolist (c '(?~ ?% ?- ?_ ?= ?+ ?| ?: ?< ?. ?> ?? ?/))
-      (modify-syntax-entry c "_" s))
-    ;; delimiters
-    (modify-syntax-entry ?\( "()" s)
-    (modify-syntax-entry ?\) ")(" s)
-    (modify-syntax-entry ?\[ "(]" s)
-    (modify-syntax-entry ?\{ "(}" s)
-    (modify-syntax-entry ?\] ")[" s)
-    (modify-syntax-entry ?\} "){" s)
-    (modify-syntax-entry ?\' "\"" s)
-   s))
+  (setq fn-mode--syntax-table
+        (let ((s (make-syntax-table)))
+          ;; this takes care of non-printable characters
+          (cl-loop for ch from 0 to 31
+                   do (modify-syntax-entry ch "@" s))
+          ;; set all letters and numbers to word constituents
+          (cl-loop for ch from 48 to 57
+                   do (modify-syntax-entry ch "w" s))
+          (cl-loop for ch from 65 to 90
+                   do (modify-syntax-entry ch "w" s))
+          (cl-loop for ch from 97 to 122
+                   do (modify-syntax-entry ch "w" s))
+          ;; whitespace and comments
+          (modify-syntax-entry ?\n ">" s)
+          (modify-syntax-entry ?\s " " s)
+          (modify-syntax-entry ?\# "<" s)
+          ;; reserved characters
+          (dolist (ch fn-mode--reserved-characters)
+            (modify-syntax-entry ch "." s))
+          ;; additional symbol constituents
+          (dolist (c '(?~ ?% ?- ?_ ?= ?+ ?| ?: ?< ?. ?> ?? ?/))
+            (modify-syntax-entry c "_" s))
+          ;; delimiters
+          (modify-syntax-entry ?\( "()" s)
+          (modify-syntax-entry ?\) ")(" s)
+          (modify-syntax-entry ?\[ "(]" s)
+          (modify-syntax-entry ?\{ "(}" s)
+          (modify-syntax-entry ?\] ")[" s)
+          (modify-syntax-entry ?\} "){" s)
+          (modify-syntax-entry ?\' "\"" s)
+          s))
 
-(let* ((symb (rx (+ (or (syntax symbol) (syntax word)))))
-       (fn-intro (rx symbol-start
-                     (or "fn" "function" "macro")
-                     symbol-end
-                     (+ space)
-                     (? "(")))
-       (type-intro (rx symbol-start
-                       (or "extend" "structure" "variant")
+  (let* ((symb (rx (+ (or (syntax symbol) (syntax word)))))
+         (fn-intro (rx symbol-start
+                       (or "fn" "function" "macro")
                        symbol-end
                        (+ space)
                        (? "(")))
-       (keyword (regexp-opt
-                 '("branch" "def" "do" "extend" "fn" "if" "implement" "import"
-                   "let" "macro" "match" "method" "namespace" "protocol" "self"
-                   "structure" "variant")
-                 'symbols)))
-  (setq fn--font-lock-defaults
-        `((,keyword 
-           0 font-lock-keyword-face)
-          (,(regexp-opt (mapcar 'string fn-mode--reserved-characters))
-           0 font-lock-warning-face)
-          (,(rx symbol-start (or "yes" "no" "else") symbol-end)
-           0 font-lock-constant-face)
-          (,(rx ":" (regexp symb))
-           0 font-lock-function-name-face)
-          (,(rx (regexp fn-intro) (* space) (group (regexp symb)))
-           1 font-lock-function-name-face)
-          (,(rx (regexp type-intro) (* space) (group (regexp symb)))
-           1 font-lock-type-face)
-          (,(rx "[" (group (+ (not "]"))) "]")
-           1 font-lock-type-face))))
+         (type-intro (rx symbol-start
+                         (or "extend" "structure" "variant")
+                         symbol-end
+                         (+ space)
+                         (? "(")))
+         (keyword (regexp-opt
+                   '("branch" "def" "do" "extend" "fn" "if" "implement" "import"
+                     "let" "macro" "match" "method" "namespace" "protocol" "self"
+                     "structure" "variant")
+                   'symbols)))
+    (setq fn--font-lock-defaults
+          `((,keyword 
+             0 font-lock-keyword-face)
+            (,(regexp-opt (mapcar 'string fn-mode--reserved-characters))
+             0 font-lock-warning-face)
+            (,(rx symbol-start (or "yes" "no" "else") symbol-end)
+             0 font-lock-constant-face)
+            (,(rx ":" (regexp symb))
+             0 font-lock-function-name-face)
+            (,(rx (regexp fn-intro) (* space) (group (regexp symb)))
+             1 font-lock-function-name-face)
+            (,(rx (regexp type-intro) (* space) (group (regexp symb)))
+             1 font-lock-type-face)
+            (,(rx "[" (group (+ (not "]"))) "]")
+             1 font-lock-type-face))))
+  )
 
 ;;; Indentation
 (defun fn-mode--point-backslashed-p ()
@@ -568,24 +570,26 @@ group. Removes spaces if negative."
 
 ;; TODO: put more thought into the lists below
 
-;; Command names that might trigger repeated indentation
-(setq fn-mode--manual-indent-commands
-  '(fn-mode-indent-line
-    indent-for-tab-command
-    indent-according-to-mode
-    fn-mode-increase-indent
-    fn-mode-decrease-indent
-    ;; this should maybe only be here if fn-mode-backspace-dedents is t
-    fn-mode-backspace
-    ;; see above comment
-    fn-mode-space-insert-function)) 
+(eval-and-compile
+  ;; Command names that might trigger repeated indentation
+  (setq fn-mode--manual-indent-commands
+        '(fn-mode-indent-line
+          indent-for-tab-command
+          indent-according-to-mode
+          fn-mode-increase-indent
+          fn-mode-decrease-indent
+          ;; this should maybe only be here if fn-mode-backspace-dedents is t
+          fn-mode-backspace
+          ;; see above comment
+          fn-mode-space-insert-function)) 
 
-;; This is a list of known commands that insert newlines and might trigger
-;; indentation. When `fn-mode-indent-line' is called on a blank line from within
-;; one of these commands, the new line wil automatically be indented to a depth
-;; matching the last, subject to `fn-mode-blank-line-indent'.
-(defvar fn-mode--newline-indent-commands
-  '(newline newline-and-indent evil-open-above evil-open-below))
+  ;; This is a list of known commands that insert newlines and might trigger
+  ;; indentation. When `fn-mode-indent-line' is called on a blank line from within
+  ;; one of these commands, the new line wil automatically be indented to a depth
+  ;; matching the last, subject to `fn-mode-blank-line-indent'.
+  (defvar fn-mode--newline-indent-commands
+    '(newline newline-and-indent evil-open-above evil-open-below))
+  )
 
 ;; TODO: modify these functions to work on regions
 
